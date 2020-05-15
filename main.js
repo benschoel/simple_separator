@@ -32,28 +32,30 @@ const updateSurface = (params) => {
     if (!state.get("isShowingMarkers")) return;
 
     const options = [...state.get("options")];
-    // const markerSize = 10;
-    // for (let i = 0; i < rect.width; i += markerSize) {
-    //     for (let j = 0; j < rect.height; j += markerSize) {
-    //         const el = document.createElement("div");
-    //         el.classList.add("marker");
-    //         el.style.top = j + "px";
-    //         el.style.left = i + "px";
-    //         el.style.height = markerSize + "px";
-    //         el.style.width = markerSize + "px";
+    const markerSize = 10;
+    for (let i = 0; i < rect.width; i += markerSize) {
+        for (let j = 0; j < rect.height; j += markerSize) {
+            const el = document.createElement("div");
+            el.classList.add("marker");
+            el.style.top = j + "px";
+            el.style.left = i + "px";
+            el.style.height = markerSize + "px";
+            el.style.width = markerSize + "px";
 
-    //         let lineValue = lineFunc(i, weight, bias);
-    //         let thisValue = rect.height - j;
+            const x = i / rect.width;
+            const y = j / rect.height;
 
-    //         if (thisValue < lineValue) {
-    //             el.style.backgroundColor = options[0].color;
-    //         } else {
-    //             el.style.backgroundColor = options[1].color;
-    //         }
-
-    //         els.surface.appendChild(el);
-    //     }
-    // }
+            const predictions = ai.run({
+                x,
+                y,
+            });
+            const predIndex = predictions.indexOf(Math.max(...predictions));
+            const option = options[predIndex];
+            el.style.opacity = predictions[predIndex];
+            el.style.backgroundColor = option.color;
+            els.surface.appendChild(el);
+        }
+    }
 };
 
 // ---------- LISTENERS ----------
