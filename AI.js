@@ -30,6 +30,10 @@ const sigmoid = (x) => 1 / (1 + Math.exp(-x));
 
 const sigmoid_p = (x) => Math.exp(-x) / Math.pow(1 + Math.exp(-x), 2);
 
+const relu = (x) => Math.max(x, 0);
+
+const relu_p = (x) => (x < 0 ? 0 : 1);
+
 const AI = (state) => {
     state.update(
         "networkParams",
@@ -49,25 +53,25 @@ const AI = (state) => {
         const input = [point.x, point.y];
         let layer1 = dot(input, params.weights[0]);
         layer1 = apply(layer1, (n) => n + params.biases[0]);
-        layer1 = apply(layer1, sigmoid);
+        layer1 = apply(layer1, relu);
         let results = dot(layer1, params.weights[1]);
         results = apply(results, (n) => n + params.biases[1]);
-        results = apply(results, sigmoid);
+        results = apply(results, relu);
         return results;
     };
 
-    const train = (epochs = 5000000, lr = 0.01) => {
+    const train = (epochs = 50000, lr = 0.1) => {
         const points = state.get("points");
         const options = state.get("options");
-        const params = state.get("networkParams");
 
         for (let epoch = 1; epoch <= epochs; epoch++) {
+            const params = state.get("networkParams");
             let point = points[Math.floor(Math.random() * points.length)];
 
             let input = [point.x, point.y];
             let z1s = dot(input, params.weights[0]);
             let b1s = apply(z1s, (n) => n + params.biases[0]);
-            let a1s = apply(b1s, sigmoid);
+            let a1s = apply(b1s, relu);
             let z2s = dot(a1s, params.weights[1]);
             let b2s = apply(z2s, (n) => n + params.biases[1]);
             let a2s = apply(b2s, sigmoid);
@@ -83,21 +87,17 @@ const AI = (state) => {
             }
             actual_values[target_index] = 1;
 
-            if (epoch % 10000 === 0) {
-                console.log(actual_values, predictions);
-            }
-
             for (let i = 0; i < predictions.length; i++) {
                 let cost = Math.pow(predictions[i] - actual_values[i], 2);
                 let a2 = a2s[i];
-                let z2 = b2s[i];
+                let z2 = z2s[i];
 
                 let dcost_da2 = 2 * (predictions[i] - actual_values[i]);
                 let da2_dz2 = sigmoid_p(z2);
 
                 let dcost_dz2 = dcost_da2 * da2_dz2;
 
-                let pseudo = [...params.weights];
+                let pseudo = [...state.get("networkParams").weights];
                 let weights1 = [...pseudo[0]];
                 let weights2 = [...pseudo[1]];
 
@@ -110,8 +110,8 @@ const AI = (state) => {
                     const wbridge = weights2[bridgeIndex][nextNodeIndex];
                     const dz2_da1 = wbridge;
 
-                    const z1 = b1s[nextNodeIndex];
-                    const da1_dz1 = sigmoid_p(z1);
+                    const z1 = z1s[nextNodeIndex];
+                    const da1_dz1 = relu_p(z1);
 
                     let dcost_dz1 = dcost_dz2 * dz2_da1 * da1_dz1;
 
@@ -149,9 +149,10 @@ const AI = (state) => {
 
                 params.weights[0] = weights1;
                 params.weights[1] = weights2;
+                state.update("networkParams", { ...params });
             }
         }
-        console.log("done training");
+        console.log("done");
     };
 
     return { run, train };

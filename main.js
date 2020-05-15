@@ -49,9 +49,11 @@ const updateSurface = (params) => {
                 x,
                 y,
             });
+            if (i % 10 === 0 && j % 10 === 0) {
+                // console.log(x, y);
+            }
             const predIndex = predictions.indexOf(Math.max(...predictions));
             const option = options[predIndex];
-            el.style.opacity = predictions[predIndex];
             el.style.backgroundColor = option.color;
             els.surface.appendChild(el);
         }
