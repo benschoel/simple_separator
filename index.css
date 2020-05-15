@@ -1,0 +1,161 @@
+* {
+    font-family: proxima-nova, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-color: #f3f7f9;
+    --main-text: #444444;
+    --dark-text: #222222;
+    --highlight-color: #9dc2e8;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--main-text);
+}
+
+hr {
+    border: solid 0.5px #dedede;
+    margin: 15px 0px;
+}
+
+.title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--dark-text);
+}
+
+.subtitle {
+    font-size: 1.15rem;
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox input {
+    cursor: pointer;
+}
+
+.checkbox-label {
+    margin-left: 10px;
+}
+
+button.button {
+    font-size: 1rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    border: none;
+    color: var(--main-text);
+    background-color: var(--highlight-color);
+    outline: none;
+    transition: 0.15s;
+}
+
+button.button:hover {
+    cursor: pointer;
+    box-shadow: inset 0px 0px 1000px rgba(0, 0, 0, 0.16);
+    color: #ffffff;
+}
+
+#wrap {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+}
+
+#left {
+    padding: 30px;
+    width: 400px;
+    background-color: #f8f8f8;
+    box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.16);
+    z-index: 3;
+}
+
+#right {
+    flex-grow: 1;
+    padding: 30px;
+    position: relative;
+    cursor: pointer;
+}
+
+#selector {
+    display: inline-flex;
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 6px;
+    z-index: 3;
+}
+
+.id {
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: 0.15s;
+    border: solid 1px #dedede;
+    border-radius: 6px;
+    user-select: none;
+    background-color: var(--bg-color);
+}
+
+.id:hover {
+    cursor: pointer;
+    border-color: #aeaeae;
+    color: var(--dark-text);
+}
+
+.id.selected {
+    /* border-color: var(--highlight-color); */
+    border-color: #9c9c9c;
+}
+
+.id:not(:last-of-type) {
+    margin-right: 10px;
+}
+
+.point {
+    position: absolute;
+    padding: 12px;
+    line-height: 10px;
+    border-radius: 50%;
+    user-select: none;
+    font-weight: bold;
+    z-index: 3;
+}
+
+.marker {
+    position: absolute;
+    border: solid 1px #dedede;
+    z-index: 2;
+    opacity: 0.5;
+}
+
+#not-supported {
+    display: none;
+    height: 100vh;
+    width: 100vw;
+    padding: 30px;
+    align-items: center;
+    justify-content: center;
+}
+
+#not-supported > .subtitle {
+    text-align: center;
+    font-weight: 600;
+}
+
+@media (max-width: 800px) {
+    #wrap {
+        display: none;
+    }
+    #not-supported {
+        display: flex;
+    }
+}
