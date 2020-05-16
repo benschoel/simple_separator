@@ -13,7 +13,7 @@ const dot = (arr1, arr2) => {
 };
 
 const apply = (arr, func) => {
-    return arr.map((n) => {
+    return [...arr].map((n) => {
         return func(n);
     });
 };
@@ -40,7 +40,7 @@ const AI = (state) => {
         (() => {
             let pseudo = {};
             pseudo.weights = [
-                [arrayOfRandom(2), arrayOfRandom(2), arrayOfRandom(2)],
+                [arrayOfRandom(3), arrayOfRandom(3), arrayOfRandom(3)],
                 [arrayOfRandom(3), arrayOfRandom(3)],
             ];
             pseudo.biases = [0, 0];
@@ -50,109 +50,118 @@ const AI = (state) => {
 
     const run = (point) => {
         const params = state.get("networkParams");
-        const input = [point.x, point.y];
+        const input = [point.x, point.y, point.x * point.y];
         let layer1 = dot(input, params.weights[0]);
-        layer1 = apply(layer1, (n) => n + params.biases[0]);
-        layer1 = apply(layer1, relu);
+        layer1 = apply(layer1, sigmoid);
         let results = dot(layer1, params.weights[1]);
-        results = apply(results, (n) => n + params.biases[1]);
-        results = apply(results, relu);
+        results = apply(results, sigmoid);
+
         return results;
     };
 
-    const train = (epochs = 50000, lr = 0.1) => {
-        const points = state.get("points");
+    const train = () => {
         const options = state.get("options");
+        const epochs = 10000;
+        const lr = 0.03;
 
         for (let epoch = 1; epoch <= epochs; epoch++) {
-            const params = state.get("networkParams");
-            let point = points[Math.floor(Math.random() * points.length)];
+            let initialWeights = [...state.get("networkParams").weights]; // these are ONLY used to setup nudeges structure, noithign more
+            let nudges = [];
 
-            let input = [point.x, point.y];
-            let z1s = dot(input, params.weights[0]);
-            let b1s = apply(z1s, (n) => n + params.biases[0]);
-            let a1s = apply(b1s, relu);
-            let z2s = dot(a1s, params.weights[1]);
-            let b2s = apply(z2s, (n) => n + params.biases[1]);
-            let a2s = apply(b2s, sigmoid);
-
-            let predictions = a2s;
-            let target_index = options.findIndex(
-                (option) => option.name === point.option
-            );
-
-            let actual_values = [];
-            for (let i = 0; i < predictions.length; i++) {
-                actual_values.push(0);
+            for (let i = 0; i < initialWeights.length; i++) {
+                nudges[i] = [];
+                for (let j = 0; j < initialWeights[i].length; j++) {
+                    nudges[i][j] = [];
+                    for (let k = 0; k < initialWeights[i][j].length; k++) {
+                        nudges[i][j][k] = 0;
+                    }
+                }
             }
-            actual_values[target_index] = 1;
+            initialWeights = null; //don't wanna take any chances here
 
-            for (let i = 0; i < predictions.length; i++) {
-                let cost = Math.pow(predictions[i] - actual_values[i], 2);
-                let a2 = a2s[i];
-                let z2 = z2s[i];
+            let points = state
+                .get("points")
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 25);
 
-                let dcost_da2 = 2 * (predictions[i] - actual_values[i]);
-                let da2_dz2 = sigmoid_p(z2);
+            for (const point of points) {
+                let targetIndex = options.findIndex(
+                    (option) => option.name === point.option
+                );
 
-                let dcost_dz2 = dcost_da2 * da2_dz2;
+                let weights = [...state.get("networkParams").weights];
 
-                let pseudo = [...state.get("networkParams").weights];
-                let weights1 = [...pseudo[0]];
-                let weights2 = [...pseudo[1]];
+                const input = [point.x, point.y, point.x * point.y];
+                let z1s = dot(input, weights[0]);
+                let a1s = apply(z1s, sigmoid);
+                let z2s = dot(a1s, weights[1]);
+                let a2s = apply(z2s, sigmoid);
 
-                let bridgeIndex = i % predictions.length;
+                let actual = a2s.map((val, index) =>
+                    index === targetIndex ? 1 : 0
+                );
 
-                //first layer of weights
-                for (let j = 0; j < weights1.length; j++) {
-                    let newWeightGroup = [];
-                    const nextNodeIndex = j;
-                    const wbridge = weights2[bridgeIndex][nextNodeIndex];
-                    const dz2_da1 = wbridge;
+                //costs is in reference to the disparity between actual and expected output, not all points, just all outputs
+                let costs = a2s.map((val, index) => {
+                    return Math.pow(val - actual[index], 2);
+                });
 
-                    const z1 = z1s[nextNodeIndex];
-                    const da1_dz1 = relu_p(z1);
+                for (let i = 0; i < costs.length; i++) {
+                    let a2 = a2s[i];
+                    let z2 = z2s[i];
 
-                    let dcost_dz1 = dcost_dz2 * dz2_da1 * da1_dz1;
+                    let dcost_da2 = a2 - actual[i]; //why did i think this was wrong, i have no idea
+                    let da2_dz2 = sigmoid_p(z2);
 
-                    for (let k = 0; k < weights1[j].length; k++) {
-                        const valIndex = k % weights1[j].length;
-                        let originalw = weights1[j][k];
-                        const n = input[valIndex];
-                        const dz1_dwn = n;
-                        const dcost_dwn = dcost_dz1 * dz1_dwn;
-
-                        //first bias updated for every weight in second layer
-                        let dcost_db1 = dcost_dz1;
-
-                        newWeightGroup.push(originalw - dcost_dwn * lr);
-                        params.biases[0] = params.biases[0] - dcost_db1 * lr;
+                    for (let j = 0; j < weights[1].length; j++) {
+                        for (let k = 0; k < weights[1][j].length; k++) {
+                            let c = a1s[k];
+                            let dz2_dwn = c;
+                            let dcost_dwn = dcost_da2 * da2_dz2 * dz2_dwn;
+                            nudges[1][j][k] = nudges[1][j][k] + dcost_dwn;
+                        }
                     }
 
-                    weights1[j] = newWeightGroup;
-                }
+                    for (let j = 0; j < weights[0].length; j++) {
+                        let z1 = z1s[j];
+                        let dz2_da1 = weights[1][i][j]; //weight between next node and node after that
 
-                //second layer of weights
-                for (let j = 0; j < weights2.length; j++) {
-                    let newWeightGroup = [];
-                    for (let k = 0; k < weights2[j].length; k++) {
-                        const original = weights2[j][k];
-                        const a1 = a1s[k];
-                        const dz2_da1 = a1;
-                        const dcost_dwn = dcost_dz2 * dz2_da1;
-                        const dcost_db2 = dcost_dz2; // * 1 but that don't matter
-                        newWeightGroup.push(original - dcost_dwn * lr);
-                        params.biases[1] = params.biases[1] - dcost_db2 * lr;
+                        for (let k = 0; k < weights[0][j].length; k++) {
+                            let da1_dz1 = sigmoid_p(z1);
+                            let dz1_dwn = input[k];
+                            let dcost_dwn =
+                                dcost_da2 *
+                                da2_dz2 *
+                                dz2_da1 *
+                                da1_dz1 *
+                                dz1_dwn;
+
+                            nudges[0][j][k] = nudges[0][j][k] + dcost_dwn;
+                        }
                     }
-                    weights2[j] = newWeightGroup;
                 }
-
-                params.weights[0] = weights1;
-                params.weights[1] = weights2;
-                state.update("networkParams", { ...params });
             }
+
+            let pseudoParams = { ...state.get("networkParams") };
+            let pseudoWeights = [...pseudoParams.weights];
+
+            pseudoWeights = pseudoWeights.map((layerGroup, i) => {
+                return layerGroup.map((nodeWeights, j) => {
+                    return nodeWeights.map((weight, k) => {
+                        let nudge = nudges[i][j][k];
+
+                        return weight - nudge * lr;
+                    });
+                });
+            });
+
+            state.update("networkParams", {
+                ...pseudoParams,
+                weights: pseudoWeights,
+            });
         }
-        console.log("done");
+
+        console.log("done training");
     };
 
     return { run, train };

@@ -32,7 +32,7 @@ const updateSurface = (params) => {
     if (!state.get("isShowingMarkers")) return;
 
     const options = [...state.get("options")];
-    const markerSize = 10;
+    const markerSize = 25;
     for (let i = 0; i < rect.width; i += markerSize) {
         for (let j = 0; j < rect.height; j += markerSize) {
             const el = document.createElement("div");
@@ -49,12 +49,15 @@ const updateSurface = (params) => {
                 x,
                 y,
             });
-            if (i % 10 === 0 && j % 10 === 0) {
-                // console.log(x, y);
+
+            if (Math.random() < 0.1) {
+                console.log(predictions);
             }
+
             const predIndex = predictions.indexOf(Math.max(...predictions));
             const option = options[predIndex];
             el.style.backgroundColor = option.color;
+            el.style.opacity = predictions[predIndex];
             els.surface.appendChild(el);
         }
     }
