@@ -95,56 +95,14 @@ button.button:hover {
     position: relative;
 }
 
-#selector {
-    display: inline-flex;
-    position: absolute;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-radius: 6px;
-    z-index: 3;
-}
-
-.id {
-    font-size: 1.2rem;
-    padding: 10px 20px;
-    font-weight: 600;
-    transition: 0.15s;
-    border: solid 1px #dedede;
-    border-radius: 6px;
-    user-select: none;
-    background-color: var(--bg-color);
-}
-
-.id:hover {
-    cursor: pointer;
-    border-color: #aeaeae;
-    color: var(--dark-text);
-}
-
-.id.selected {
-    border-color: #9c9c9c;
-}
-
-.id:not(:last-of-type) {
-    margin-right: 10px;
-}
-
 .point {
     position: absolute;
-    padding: 12px;
+    padding: 6px;
     line-height: 10px;
     border-radius: 50%;
     user-select: none;
     font-weight: bold;
     z-index: 3;
-}
-
-.marker {
-    position: absolute;
-    border: solid 1px #dedede;
-    z-index: 2;
-    opacity: 0.5;
 }
 
 #not-supported {
