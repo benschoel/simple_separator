@@ -81,7 +81,18 @@ button.button:hover {
     flex-grow: 1;
     padding: 30px;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#surface {
+    height: 600px;
+    width: 600px;
+    border-radius: 6px;
+    border: solid 1px #dedede;
     cursor: pointer;
+    position: relative;
 }
 
 #selector {
@@ -112,7 +123,6 @@ button.button:hover {
 }
 
 .id.selected {
-    /* border-color: var(--highlight-color); */
     border-color: #9c9c9c;
 }
 
