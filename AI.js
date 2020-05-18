@@ -44,11 +44,11 @@ const getActivationFunction = (key, prime = false) => {
 const getCostFunction = (key, prime = false) => {
     //y is what the ai predicted, yHat is the actual value
     const f = {
-        mse: (y, yHat) => Math.pow(y - yHat, 2),
+        mse: (y, yHat) => Math.pow(y - yHat, 2) / 2,
     };
 
     const p = {
-        mse: (y, yHat) => 2 * (y - yHat),
+        mse: (y, yHat) => y - yHat,
     };
 
     if (!prime) return f[key];
@@ -110,19 +110,23 @@ const AI = (inputLen) => {
 
             if (e % 100 === 0) {
                 console.log("Epoch " + e);
-                let err = 0;
-                for (const data of training) {
-                    let pred = run(data.input);
-                    let actual = data.output;
-                    err += costFunction(pred[0], actual[0]);
-                }
-                console.log(err);
+                // let err = 0;
+                // for (const data of training) {
+                //     let pred = run(data.input);
+                //     let actual = data.output;
+                //     err += costFunction(pred[0], actual[0]);
+                // }
+                // console.log(err);
             }
 
             for (const data of training) {
-                const { zs, as } = run(data.input, true);
+                const { zs, bs, as } = run(data.input, true);
                 let prediction = as[as.length - 1];
                 let actual = data.output;
+
+                // if (e % 100 === 0) {
+                //     console.log(costFunction(prediction[0], actual[0]));
+                // }
 
                 const prevd = Array(as.length).fill([]);
 
@@ -136,7 +140,7 @@ const AI = (inputLen) => {
                     let aGroup = as[i];
 
                     for (let j = 0; j < aGroup.length; j++) {
-                        let da_dz = activation_p(zs[i][j]);
+                        let da_dz = activation_p(bs[i][j]);
 
                         if (i === as.length - 1) {
                             da_dz *= costFunction_p(prediction[j], actual[j]);
@@ -157,9 +161,21 @@ const AI = (inputLen) => {
 
                                 if (as[i + 1]) {
                                     for (let n = 0; n < as[i + 1].length; n++) {
+                                        let previous = 0;
+
+                                        for (
+                                            let x = i + 1;
+                                            x < prevd.length;
+                                            x++
+                                        ) {
+                                            previous *= prevd[x].reduce(
+                                                (total, val) => total + val
+                                            );
+                                        }
+
                                         const specificDcost =
                                             da_dwn *
-                                            prevd[i + 1][n] *
+                                            previous *
                                             layers[i + 1].weights[n][k];
 
                                         derivs.weights[i][k][
@@ -168,7 +184,7 @@ const AI = (inputLen) => {
 
                                         derivs.biases[i] +=
                                             da_db *
-                                            prevd[i + 1][n] *
+                                            previous *
                                             layers[i + 1].weights[n][k];
                                     }
                                 } else {

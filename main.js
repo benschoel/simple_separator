@@ -4,13 +4,14 @@ import AI from "./AI";
 //and gate
 let data = [
     [0, 0, 0],
-    [0, 1, 0],
-    [1, 0, 0],
-    [1, 1, 1],
+    [0, 1, 1],
+    [1, 0, 1],
+    [1, 1, 0],
 ];
 
 const state = State({});
 const ai = AI(2);
+ai.add(3, "sigmoid");
 ai.add(1, "relu");
 
 document.querySelector("#train-btn").addEventListener("click", () => {
@@ -22,8 +23,8 @@ document.querySelector("#train-btn").addEventListener("click", () => {
     });
     ai.train(trainingData, {
         cost: "mse",
-        epochs: 100000,
-        lr: 0.01,
+        epochs: 1000000,
+        lr: 0.1,
     });
 });
 
