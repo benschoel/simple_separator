@@ -81,28 +81,6 @@ button.button:hover {
     flex-grow: 1;
     padding: 30px;
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#surface {
-    height: 600px;
-    width: 600px;
-    border-radius: 6px;
-    border: solid 1px #dedede;
-    cursor: pointer;
-    position: relative;
-}
-
-.point {
-    position: absolute;
-    padding: 6px;
-    line-height: 10px;
-    border-radius: 50%;
-    user-select: none;
-    font-weight: bold;
-    z-index: 3;
 }
 
 #not-supported {
